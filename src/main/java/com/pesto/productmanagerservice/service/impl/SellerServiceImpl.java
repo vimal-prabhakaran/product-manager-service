@@ -50,12 +50,13 @@ public class SellerServiceImpl implements SellerService {
     UserRepository userRepository;
 
     @Override
-    public SellerProductListResponseDTO getSellerCatalog(String sellerId, Integer pageNo, Integer pageSize) {
+    public SellerProductListResponseDTO getSellerCatalog(String sellerUserName, Integer pageNo, Integer pageSize) {
         SellerProductListResponseDTO responseDTO = new SellerProductListResponseDTO();
         pageNo = Objects.isNull(pageNo) ? 0 : pageNo;
         pageSize = Objects.isNull(pageSize) ? 10 : pageSize;
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Offer> offerPage = offerRepository.findBySeller_UserIdEqualsOrderByProduct(sellerId, pageable);
+        User seller = userRepository.findByUserName(sellerUserName);
+        Page<Offer> offerPage = offerRepository.findBySeller_UserIdEqualsOrderByProduct(seller.getUserId(), pageable);
         List<SellerProductInfoDTO> sellerProductInfoDTOList = new ArrayList<>();
         for (Offer offer : offerPage.getContent()) {
             SellerProductInfoDTO sellerProductInfoDTO = new SellerProductInfoDTO();
@@ -130,8 +131,11 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public SellerProductInfoDTO getProduct(String productId, String sellerId) {
-        Offer offer = offerRepository.findBySeller_UserIdAndProduct_ProductId(productId, sellerId);
+    public SellerProductInfoDTO getProduct(String productId, String sellerUserName) {
+        User seller = userRepository.findByUserName(sellerUserName);
+        Offer offer = offerRepository.findBySeller_UserIdAndProduct_ProductId(seller.getUserId(), productId);
+        if (Objects.isNull(offer))
+            return null;
         OfferDTO offerDTO = offerDTOBuilder.build(offer);
         ProductDTO productDTO = productDTOBuilder.build(offer.getProduct());
         return new SellerProductInfoDTO(productDTO, offerDTO);

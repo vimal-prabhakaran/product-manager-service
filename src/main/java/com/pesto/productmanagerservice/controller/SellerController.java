@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,13 +27,13 @@ public class SellerController {
     @Autowired
     SellerService sellerService;
 
-    @GetMapping("/catalog")
-    public ResponseEntity<SellerProductListResponseDTO> getSellerCatalog(@RequestParam String sellerId,
+    @GetMapping("/products")
+    public ResponseEntity<SellerProductListResponseDTO> getSellerCatalog(@RequestHeader(name="X-UserId") String userId,
                                                                          @RequestParam(required = false) Integer pageNo,
                                                                          @RequestParam(required = false) Integer pageSize) {
-        SellerProductListResponseDTO responseDTO = sellerService.getSellerCatalog(sellerId, pageNo, pageSize);
+        SellerProductListResponseDTO responseDTO = sellerService.getSellerCatalog(userId, pageNo, pageSize);
         if (Objects.isNull(responseDTO))
-            return new ResponseEntity<SellerProductListResponseDTO>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<SellerProductListResponseDTO>(HttpStatus.NOT_FOUND);
         return new ResponseEntity<SellerProductListResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
@@ -45,10 +46,11 @@ public class SellerController {
     }
 
     @GetMapping("/product")
-    public ResponseEntity<SellerProductInfoDTO> getProductOffer(@RequestParam String productId, @RequestParam String sellerId) {
-        SellerProductInfoDTO responseDTO = sellerService.getProduct(productId, sellerId);
+    public ResponseEntity<SellerProductInfoDTO> getProductOffer(@RequestParam String productId,
+                                                                @RequestHeader(name="X-UserId") String userId) {
+        SellerProductInfoDTO responseDTO = sellerService.getProduct(productId, userId);
         if (Objects.isNull(responseDTO))
-            return new ResponseEntity<SellerProductInfoDTO>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<SellerProductInfoDTO>(HttpStatus.NOT_FOUND);
         return new ResponseEntity<SellerProductInfoDTO>(responseDTO, HttpStatus.OK);
     }
 
@@ -64,7 +66,7 @@ public class SellerController {
     public ResponseEntity<Boolean> deleteProduct(@RequestParam String productId, @RequestParam String sellerId) {
         Boolean response = sellerService.deleteProduct(productId, sellerId);
         if (response)
-            return new ResponseEntity<Boolean>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<Boolean>(HttpStatus.NOT_FOUND);
         return new ResponseEntity<Boolean>(Boolean.TRUE, HttpStatus.OK);
     }
 }
